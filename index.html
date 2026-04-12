@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gayon Prints</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        :root { --accent: #FFD700; --bg: #000000; }
+        body { font-family: sans-serif; background: var(--bg); color: white; margin: 0; text-align: center; }
+        .app-container { padding: 20px; max-width: 400px; margin: auto; }
+        .status-bar { font-size: 10px; color: var(--accent); margin-bottom: 10px; text-transform: uppercase; }
+        .preview-box { position: relative; width: 100%; aspect-ratio: 3/4; background: #111; border: 2px solid #333; border-radius: 12px; overflow: hidden; }
+        video, canvas { width: 100%; height: 100%; object-fit: cover; }
+        canvas { display: none; }
+        canvas.visible { display: block; }
+        .controls { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+        button { padding: 20px; border-radius: 10px; border: none; font-weight: bold; text-transform: uppercase; cursor: pointer; }
+        .btn-cap { background: white; color: black; }
+        .btn-print { background: var(--accent); color: black; }
+        button:disabled { opacity: 0.2; }
+        
+        /* FLASH EFFECT */
+        .flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; pointer-events: none; transition: opacity 0.1s; }
+        
+        /* PRINT STYLES */
+        @media print {
+            body * { visibility: hidden; }
+            #canvas { visibility: visible; display: block !important; position: fixed; left: 0; top: 0; width: 100vw !important; height: auto !important; }
+            @page { margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <h1 style="letter-spacing:5px;">GAYON</h1>
+    <div class="status-bar" id="status">System Ready</div>
+
+    <div class="preview-box">
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas" width="384" height="600"></canvas>
+        <div id="flash" class="flash"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-cap" onclick="takePhoto()">📸 Capture</button>
+        <button class="btn-print" id="printBtn" onclick="window.print()" disabled>📠 Print</button>
+        <button style="background:none; color:gray; font-size:10px;" onclick="location.reload()">Reset App</button>
+    </div>
+</div>
+
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+    const printBtn = document.getElementById('printBtn');
+    const flash = document.getElementById('flash');
+
+    const logoImg = new Image();
+    logoImg.src = 'logo.png';
+
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+            video.srcObject = stream;
+        } catch (e) { status.innerText = "Camera Error"; }
+    }
+    startCamera();
+
+    function takePhoto() {
+        // Flash Effect
+        flash.style.opacity = 1;
+        setTimeout(() => flash.style.opacity = 0, 100);
+
+        // Draw Layout
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, 384, 600);
+        ctx.drawImage(logoImg, 42, 10, 300, 100);
+        ctx.drawImage(video, 20, 120, 344, 450);
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(20, 120, 344, 450);
+
+        applyDither();
+
+        video.style.display = 'none';
+        canvas.classList.add('visible');
+        printBtn.disabled = false;
+        status.innerText = "Captured!";
+    }
+
+    function applyDither() {
+        const imgData = ctx.getImageData(0, 0, 384, 600);
+        const pixels = imgData.data;
+        for (let i = 0; i < pixels.length; i += 4) {
+            let g = 0.3 * pixels[i] + 0.59 * pixels[i+1] + 0.11 * pixels[i+2];
+            pixels[i] = pixels[i+1] = pixels[i+2] = (g < 128) ? 0 : 255;
+        }
+        ctx.putImageData(imgData, 0, 0);
+    }
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
+</script>
+</body>
+</html>
