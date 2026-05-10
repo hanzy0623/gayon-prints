@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Gayon Booth Pro - Premium Event Photobooth System</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="app" class="app">
+    <section id="startScreen" class="screen active">
+      <div class="glass hero">
+        <p class="eyebrow">Premium Event Photobooth</p>
+        <h1 id="eventTitle">Gayon Booth Pro</h1>
+        <p id="eventSubtitle">Tap to start your photo session</p>
+        <button id="tapStartBtn" class="btn btn-hero">Tap To Start</button>
+      </div>
+      <footer class="admin-footer">
+        <button id="adminFooterBtn" class="admin-footer-btn" type="button">Admin</button>
+        <p id="adminFooterHint" class="admin-hint">Tap once then tap again to open</p>
+      </footer>
+    </section>
+
+    <section id="kioskScreen" class="screen">
+      <header class="kiosk-header glass">
+        <div>
+          <h2 id="liveEventTitle">Gayon Booth Pro</h2>
+          <p id="liveBranding">Premium Prints</p>
+        </div>
+        <div class="counter-wrap">
+          <span>Sessions</span>
+          <strong id="sessionCount">0</strong>
+        </div>
+      </header>
+
+      <main class="kiosk-main">
+        <div class="camera-wrap glass">
+          <video id="preview" autoplay muted playsinline></video>
+          <div id="flashLayer"></div>
+          <div id="countdownOverlay"></div>
+        </div>
+
+        <div class="controls">
+          <label class="template-label" for="templateSelect">Template</label>
+          <select id="templateSelect" class="select">
+            <option value="strip">Strip 2x6 (3 shots)</option>
+            <option value="grid">Grid 4x6 (4 shots)</option>
+            <option value="polaroid">Polaroid 4x4 (1 shot)</option>
+            <option value="double">Double 4x6 (2 shots)</option>
+          </select>
+          <button id="captureFlowBtn" class="btn btn-primary">Start Capture</button>
+          <button id="backToStartBtn" class="btn">Back</button>
+        </div>
+      </main>
+    </section>
+
+    <section id="reviewScreen" class="screen">
+      <div class="glass review-card">
+        <h3>Review Shot</h3>
+        <img id="reviewImage" alt="Captured shot preview">
+        <div class="review-actions">
+          <button id="retakeBtn" class="btn">Retake</button>
+          <button id="keepBtn" class="btn btn-primary">Keep</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="screen">
+      <div class="glass result-card">
+        <h3>Session Ready</h3>
+        <img id="resultImage" alt="Print composition preview">
+        <div id="qrWrap" class="qr-wrap hidden">
+          <p>Scan Gallery Link</p>
+          <div id="qrTarget"></div>
+        </div>
+        <div class="result-actions">
+          <button id="printBtn" class="btn btn-primary">Print</button>
+          <button id="saveBtn" class="btn">Save</button>
+          <button id="newSessionBtn" class="btn">New Session</button>
+        </div>
+        <p id="printStatus" class="admin-hint"></p>
+      </div>
+    </section>
+  </div>
+
+  <script src="./qrcode.min.js"></script>
+  <script src="./script.js"></script>
+</body>
+</html>

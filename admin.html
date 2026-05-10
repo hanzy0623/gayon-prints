@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gayon Booth Pro - Admin</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body class="admin-body">
+  <main class="admin-page">
+    <header class="glass admin-header">
+      <h1>Admin Dashboard</h1>
+      <p>Event control and branding</p>
+      <a href="./index.html" class="btn">Back To Kiosk</a>
+    </header>
+
+    <section class="glass admin-grid">
+      <label>Event Title<input id="eventTitleInput" type="text"></label>
+      <label>Subtitle / Branding<input id="eventSubtitleInput" type="text"></label>
+      <label>Font
+        <select id="fontSelect">
+          <option value="'Montserrat', sans-serif">Montserrat</option>
+          <option value="'Poppins', sans-serif">Poppins</option>
+          <option value="'Space Grotesk', sans-serif">Space Grotesk</option>
+          <option value="'Playfair Display', serif">Playfair Display</option>
+        </select>
+      </label>
+      <label>Header Style
+        <select id="headerStyleSelect">
+          <option value="neon">Neon</option>
+          <option value="minimal">Minimal</option>
+          <option value="luxury">Luxury</option>
+        </select>
+      </label>
+      <label>Auto Print<input id="autoPrintToggle" type="checkbox"></label>
+      <label>Timestamp On Print<input id="timestampToggle" type="checkbox"></label>
+      <label>Enable QR<input id="qrEnabledToggle" type="checkbox"></label>
+      <label>QR / Gallery Link<input id="qrLinkInput" type="url" placeholder="https://..."></label>
+      <label>Template Default
+        <select id="defaultTemplateSelect">
+          <option value="strip">Strip</option>
+          <option value="grid">Grid</option>
+          <option value="polaroid">Polaroid</option>
+          <option value="double">Double</option>
+        </select>
+      </label>
+      <label>Print DPI
+        <select id="printDpiSelect">
+          <option value="124">124 (Fast)</option>
+          <option value="300">300 (Standard)</option>
+          <option value="324">324 (Premium)</option>
+        </select>
+      </label>
+      <label>Printer Profile
+        <select id="printerProfileSelect">
+          <option value="photo">Photo Printer (2x6 / 4x6 / 4x4)</option>
+          <option value="receipt80">80mm Receipt Printer (VOZY G80)</option>
+        </select>
+      </label>
+      <label>Print Engine
+        <select id="printEngineSelect">
+          <option value="browser">Browser Print (Default)</option>
+          <option value="qz">QZ Tray ESC/POS (Auto Cut)</option>
+        </select>
+      </label>
+      <label>Auto Cut (ESC/POS)<input id="autoCutToggle" type="checkbox"></label>
+      <label>Receipt Quality
+        <select id="receiptQualitySelect">
+          <option value="fast">Fast</option>
+          <option value="balanced">Balanced</option>
+          <option value="high">High Detail</option>
+        </select>
+      </label>
+      <label>Receipt Render
+        <select id="receiptRenderModeSelect">
+          <option value="grayscale">Grayscale (Recommended)</option>
+          <option value="bw">Pure B/W (High Contrast)</option>
+        </select>
+      </label>
+      <label>Receipt Brightness
+        <input id="receiptBrightnessInput" type="range" min="-40" max="60" step="1">
+      </label>
+      <label>Receipt Contrast
+        <input id="receiptContrastInput" type="range" min="0.7" max="1.4" step="0.01">
+      </label>
+      <label>Photo Filter
+        <select id="filterModeSelect">
+          <option value="none">None</option>
+          <option value="mono">Mono</option>
+          <option value="silvertone">Silvertone</option>
+          <option value="noir">Noir</option>
+        </select>
+      </label>
+      <label>Header Image<input id="headerImageInput" type="file" accept="image/*"></label>
+      <label>Footer Logo<input id="footerLogoInput" type="file" accept="image/*"></label>
+    </section>
+
+    <section class="glass admin-actions">
+      <button id="saveSettingsBtn" class="btn btn-primary">Save Settings</button>
+      <button id="resetEventBtn" class="btn">Reset Event Logs</button>
+      <p id="saveStatus"></p>
+    </section>
+  </main>
+
+  <script src="./admin.js"></script>
+</body>
+</html>

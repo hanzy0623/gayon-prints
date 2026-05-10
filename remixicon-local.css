@@ -1,0 +1,31 @@
+/*
+* Remix Icon v4.2.0 - Local Version
+* https://remixicon.com
+*/
+@font-face {
+  font-family: "remixicon";
+  src: url('remixicon.woff2') format("woff2");
+  font-display: swap;
+}
+
+[class^="ri-"], [class*=" ri-"] {
+  font-family: "remixicon" !important;
+  font-style: normal;
+  font-weight: 400;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.ri-account-back-fill:before { content: "\ea4a"; }
+.ri-account-back-line:before { content: "\ea4b"; }
+.ri-account-box-fill:before { content: "\ea4c"; }
+.ri-account-box-line:before { content: "\ea4d"; }
+.ri-check-line:before { content: "\eab0"; }
+.ri-refresh-line:before { content: "\ec8e"; }
+.ri-camera-lens-line:before { content: "\e9d8"; }
+.ri-flashlight-fill:before { content: "\eaab"; }
+.ri-printer-line:before { content: "\ec9d"; }
+.ri-download-2-line:before { content: "\eaa0"; }
