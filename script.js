@@ -236,6 +236,7 @@
     ui.resultImage.src = composedCanvas.toDataURL("image/png");
     buildQrPreview();
     showScreen("resultScreen");
+    setPrintStatus("Your print is ready. Tap Print to preview and print.");
     scheduleResultAutoReset();
     hideControls(false);
     appendSessionLog(finalTemplateKey, sessionShots.length);

@@ -131,15 +131,29 @@ video { width: 100%; height: 100%; object-fit: cover; background: #000; display:
 
 .review-card, .result-card {
   width: min(860px, 95vw);
-  padding: 22px;
+  padding: 28px;
   text-align: center;
 }
-#reviewImage, #resultImage { width: min(92vw, 540px); border-radius: 16px; border: 1px solid var(--line); }
-.review-actions, .result-actions {
-  margin-top: 14px;
-  display: flex; justify-content: center; flex-wrap: wrap; gap: 12px;
+.result-header {
+  margin-bottom: 18px;
 }
-.qr-wrap { margin-top: 12px; }
+.result-header h3 {
+  margin-bottom: 10px;
+  font-size: clamp(1.8rem, 2.3vw, 2.4rem);
+}
+.result-copy {
+  margin: 0 auto;
+  max-width: 680px;
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.8;
+}
+#reviewImage, #resultImage { width: min(92vw, 540px); border-radius: 20px; border: 1px solid var(--line); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18); }
+.review-actions, .result-actions {
+  margin-top: 18px;
+  display: flex; justify-content: center; flex-wrap: wrap; gap: 14px;
+}
+.qr-wrap { margin-top: 16px; }
 .hidden { display: none; }
 
 .admin-body { padding: 20px; }

@@ -69,7 +69,10 @@
 
     <section id="resultScreen" class="screen">
       <div class="glass result-card">
-        <h3>Session Ready</h3>
+        <div class="result-header">
+          <h3>Print Preview Ready</h3>
+          <p class="result-copy">Your session is complete. Review the final print below, then tap Print to preview and print.</p>
+        </div>
         <img id="resultImage" alt="Print composition preview">
         <div id="qrWrap" class="qr-wrap hidden">
           <p>Scan Gallery Link</p>
@@ -77,7 +80,7 @@
         </div>
         <div class="result-actions">
           <button id="printBtn" class="btn btn-primary">Print</button>
-          <button id="saveBtn" class="btn">Save</button>
+          <button id="saveBtn" class="btn">Download</button>
           <button id="newSessionBtn" class="btn">New Session</button>
         </div>
         <p id="printStatus" class="admin-hint"></p>
