@@ -71,7 +71,13 @@
     liveEventTitle: byId("liveEventTitle"),
     liveBranding: byId("liveBranding"),
     qrWrap: byId("qrWrap"),
-    qrTarget: byId("qrTarget")
+    qrTarget: byId("qrTarget"),
+    printPreviewModal: byId("printPreviewModal"),
+    printPreviewImage: byId("printPreviewImage"),
+    confirmPrintBtn: byId("confirmPrintBtn"),
+    previewSaveBtn: byId("previewSaveBtn"),
+    closePrintModalBtn: byId("closePrintModalBtn"),
+    previewStatus: byId("previewStatus")
   };
 
   init();
@@ -110,7 +116,29 @@
       if (!composedCanvas) {
         return;
       }
+      showPrintPreview(composedCanvas, composedTemplateKey);
+    });
+
+    ui.confirmPrintBtn.addEventListener("click", () => {
+      if (!composedCanvas) {
+        return;
+      }
+      closePrintPreview();
       void printCanvas(composedCanvas, composedTemplateKey, true);
+    });
+
+    ui.previewSaveBtn.addEventListener("click", () => {
+      if (!composedCanvas) {
+        return;
+      }
+      const a = document.createElement("a");
+      a.href = composedCanvas.toDataURL("image/png");
+      a.download = `gayon-${Date.now()}.png`;
+      a.click();
+    });
+
+    ui.closePrintModalBtn.addEventListener("click", () => {
+      closePrintPreview();
     });
 
     ui.saveBtn.addEventListener("click", () => {
@@ -502,55 +530,65 @@
     const dataUrl = printAsset.dataUrl;
     const dims = toPortraitPage(printAsset.pageWidthCss, printAsset.pageHeightCss);
     const isReceipt = printAsset.mode === "receipt80";
+    
+    // Create the print HTML document
     const finalHtml = `<!doctype html><html><head><meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Print Photo</title>
       <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
       @page { size: ${dims.widthCss} ${dims.heightCss}; margin: 0; }
       html, body {
-        margin:0; padding:0; background:#fff;
-        width:${dims.widthCss};
-        height:${dims.heightCss};
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        width: ${dims.widthCss};
+        height: ${dims.heightCss};
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .sheet {
-        width:${isReceipt ? dims.widthCss : printAsset.sheetWidthCss};
-        height:${dims.heightCss};
-        display:block;
-        margin:0 auto;
+        width: ${isReceipt ? dims.widthCss : printAsset.sheetWidthCss};
+        height: ${dims.heightCss};
+        display: block;
         page-break-inside: avoid;
       }
       img {
-        display:block;
-        width:100%;
-        height:100%;
-        object-fit:${isReceipt ? "contain" : "fill"};
-      }
-      .pad {
-        width:${isReceipt ? dims.widthCss : printAsset.sheetWidthCss};
-        height:${dims.heightCss};
-        margin: 0 auto;
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: ${isReceipt ? "contain" : "fill"};
       }
       </style></head>
-      <body><div class="pad"><div class="sheet"><img src="${dataUrl}" alt="print"></div></div></body></html>`;
+      <body><div class="sheet"><img src="${dataUrl}" alt="print" onload="window.print();"></div></body></html>`;
+    
+    // Try popup first
+    setPrintStatus("Opening print dialog...");
     const popupOpened = openPopupPrintWindow(finalHtml);
     if (popupOpened) {
       setPrintStatus("Print window opened.");
       return;
     }
 
+    // Fall back to iframe
     try {
+      setPrintStatus("Preparing print...");
       const iframePrinted = await printViaIframe(finalHtml);
       if (iframePrinted) {
-        setPrintStatus("Print dialog opened.");
+        setPrintStatus("Print completed.");
         return;
       }
-    } catch {
-      // continue to status handling below
+    } catch (error) {
+      console.warn("Iframe print failed:", error);
     }
 
+    // If both fail, show error message
     if (!userInitiated) {
       setPrintStatus("Auto-print blocked. Tap Print button.");
       return;
     }
-    setPrintStatus("Print blocked. Enable popups or use Ctrl+Shift+P.");
+    setPrintStatus("Print failed. Please check your browser popup settings.");
   }
 
   async function printViaIframe(finalHtml) {
@@ -664,25 +702,30 @@
 
   function openPopupPrintWindow(html) {
     try {
-      const win = window.open("", "_blank", "width=420,height=780");
+      const win = window.open("", "_blank", "width=800,height=600,scrollbars=yes");
       if (!win) {
         return false;
       }
       win.document.open();
       win.document.write(html);
       win.document.close();
-      win.onload = () => {
-        setTimeout(() => {
-          try {
-            win.focus();
-            win.print();
-          } catch {
-            // ignored
-          }
-        }, 120);
+      
+      // Ensure print dialog triggers once content loads
+      const checkAndPrint = () => {
+        try {
+          win.focus();
+          win.print();
+        } catch (e) {
+          console.warn("Print dialog trigger failed:", e);
+        }
       };
+      
+      // Try to print immediately if content is ready
+      setTimeout(checkAndPrint, 200);
+      
       return true;
-    } catch {
+    } catch (error) {
+      console.warn("Popup window failed:", error);
       return false;
     }
   }
@@ -702,6 +745,10 @@
 
   function setPrintStatus(message) {
     ui.printStatus.textContent = message;
+    // Also update modal status if modal is visible
+    if (!ui.printPreviewModal.classList.contains("hidden")) {
+      ui.previewStatus.textContent = message;
+    }
   }
 
   function stripDataUrlPrefix(dataUrl) {
@@ -822,6 +869,17 @@
     [ui.startScreen, ui.kioskScreen, ui.reviewScreen, ui.resultScreen].forEach((el) => {
       el.classList.toggle("active", el.id === id);
     });
+  }
+
+  function showPrintPreview(canvas, templateKey) {
+    ui.printPreviewImage.src = canvas.toDataURL("image/png");
+    ui.previewStatus.textContent = "Ready to print";
+    ui.printPreviewModal.classList.remove("hidden");
+  }
+
+  function closePrintPreview() {
+    ui.printPreviewModal.classList.add("hidden");
+    ui.previewStatus.textContent = "";
   }
 
   function scheduleResultAutoReset() {

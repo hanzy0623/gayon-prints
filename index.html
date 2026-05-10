@@ -83,6 +83,23 @@
         <p id="printStatus" class="admin-hint"></p>
       </div>
     </section>
+
+    <!-- Print Preview Modal -->
+    <div id="printPreviewModal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content glass">
+        <h3>Print Preview</h3>
+        <div id="printPreviewContainer" class="print-preview-container">
+          <img id="printPreviewImage" alt="Print preview">
+        </div>
+        <div class="modal-actions">
+          <button id="confirmPrintBtn" class="btn btn-primary">Print</button>
+          <button id="previewSaveBtn" class="btn">Save Image</button>
+          <button id="closePrintModalBtn" class="btn">Cancel</button>
+        </div>
+        <p id="previewStatus" class="admin-hint"></p>
+      </div>
+    </div>
   </div>
 
   <script src="./qrcode.min.js"></script>
