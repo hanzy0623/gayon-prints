@@ -72,17 +72,26 @@
     liveBranding: byId("liveBranding"),
     qrWrap: byId("qrWrap"),
     qrTarget: byId("qrTarget"),
-    printPreviewModal: byId("printPreviewModal"),
-    printPreviewImage: byId("printPreviewImage"),
-    confirmPrintBtn: byId("confirmPrintBtn"),
-    previewSaveBtn: byId("previewSaveBtn"),
-    closePrintModalBtn: byId("closePrintModalBtn"),
-    previewStatus: byId("previewStatus")
+    // Optional modal elements
+    printPreviewModal: byIdOptional("printPreviewModal"),
+    printPreviewImage: byIdOptional("printPreviewImage"),
+    confirmPrintBtn: byIdOptional("confirmPrintBtn"),
+    previewSaveBtn: byIdOptional("previewSaveBtn"),
+    closePrintModalBtn: byIdOptional("closePrintModalBtn"),
+    previewStatus: byIdOptional("previewStatus")
   };
 
   init();
 
   function init() {
+    // Debug: Check if modal elements exist
+    console.log("UI Elements found:");
+    console.log("- printPreviewModal:", !!ui.printPreviewModal);
+    console.log("- printPreviewImage:", !!ui.printPreviewImage);
+    console.log("- confirmPrintBtn:", !!ui.confirmPrintBtn);
+    console.log("- previewSaveBtn:", !!ui.previewSaveBtn);
+    console.log("- closePrintModalBtn:", !!ui.closePrintModalBtn);
+    
     applyBranding();
     bindUI();
     ui.templateSelect.value = settings.defaultTemplate;
@@ -113,33 +122,62 @@
     ui.keepBtn.addEventListener("click", () => resolveReview(true));
 
     ui.printBtn.addEventListener("click", () => {
+      console.log("Print button clicked. composedCanvas:", !!composedCanvas);
       if (!composedCanvas) {
+        alert("No image to print");
         return;
       }
       showPrintPreview(composedCanvas, composedTemplateKey);
     });
 
-    ui.confirmPrintBtn.addEventListener("click", () => {
-      if (!composedCanvas) {
-        return;
-      }
-      closePrintPreview();
-      void printCanvas(composedCanvas, composedTemplateKey, true);
-    });
+    // Modal button listeners - add null checks
+    if (ui.confirmPrintBtn) {
+      ui.confirmPrintBtn.addEventListener("click", () => {
+        console.log("Confirm print clicked");
+        if (!composedCanvas) {
+          return;
+        }
+        closePrintPreview();
+        void printCanvas(composedCanvas, composedTemplateKey, true);
+      });
+    } else {
+      console.warn("confirmPrintBtn not found in DOM");
+    }
 
-    ui.previewSaveBtn.addEventListener("click", () => {
-      if (!composedCanvas) {
-        return;
-      }
-      const a = document.createElement("a");
-      a.href = composedCanvas.toDataURL("image/png");
-      a.download = `gayon-${Date.now()}.png`;
-      a.click();
-    });
+    if (ui.previewSaveBtn) {
+      ui.previewSaveBtn.addEventListener("click", () => {
+        console.log("Preview save clicked");
+        if (!composedCanvas) {
+          return;
+        }
+        const a = document.createElement("a");
+        a.href = composedCanvas.toDataURL("image/png");
+        a.download = `gayon-${Date.now()}.png`;
+        a.click();
+      });
+    } else {
+      console.warn("previewSaveBtn not found in DOM");
+    }
 
-    ui.closePrintModalBtn.addEventListener("click", () => {
-      closePrintPreview();
-    });
+    if (ui.closePrintModalBtn) {
+      ui.closePrintModalBtn.addEventListener("click", () => {
+        console.log("Close modal clicked");
+        closePrintPreview();
+      });
+    } else {
+      console.warn("closePrintModalBtn not found in DOM");
+    }
+
+    // Modal overlay close
+    if (ui.printPreviewModal) {
+      const overlay = ui.printPreviewModal.querySelector(".modal-overlay");
+      if (overlay) {
+        overlay.addEventListener("click", () => {
+          console.log("Modal overlay clicked");
+          closePrintPreview();
+        });
+      }
+    }
 
     ui.saveBtn.addEventListener("click", () => {
       if (!composedCanvas) {
@@ -872,14 +910,44 @@
   }
 
   function showPrintPreview(canvas, templateKey) {
-    ui.printPreviewImage.src = canvas.toDataURL("image/png");
-    ui.previewStatus.textContent = "Ready to print";
-    ui.printPreviewModal.classList.remove("hidden");
+    console.log("showPrintPreview called with canvas:", !!canvas);
+    try {
+      if (!ui.printPreviewImage) {
+        console.error("printPreviewImage element not found");
+        return;
+      }
+      if (!ui.printPreviewModal) {
+        console.error("printPreviewModal element not found");
+        return;
+      }
+      
+      ui.printPreviewImage.src = canvas.toDataURL("image/png");
+      ui.previewStatus.textContent = "Ready to print";
+      ui.printPreviewModal.classList.remove("hidden");
+      console.log("Print preview modal shown");
+      
+      // Ensure modal is visible by checking computed style
+      setTimeout(() => {
+        const computedStyle = window.getComputedStyle(ui.printPreviewModal);
+        console.log("Modal display style:", computedStyle.display);
+      }, 100);
+    } catch (error) {
+      console.error("Error showing print preview:", error);
+      alert("Error showing preview: " + error.message);
+    }
   }
 
   function closePrintPreview() {
-    ui.printPreviewModal.classList.add("hidden");
-    ui.previewStatus.textContent = "";
+    console.log("closePrintPreview called");
+    try {
+      if (ui.printPreviewModal) {
+        ui.printPreviewModal.classList.add("hidden");
+        ui.previewStatus.textContent = "";
+        console.log("Print preview modal hidden");
+      }
+    } catch (error) {
+      console.error("Error closing print preview:", error);
+    }
   }
 
   function scheduleResultAutoReset() {
@@ -1233,5 +1301,9 @@
       throw new Error(`Missing required element: ${id}`);
     }
     return el;
+  }
+
+  function byIdOptional(id) {
+    return document.getElementById(id) || null;
   }
 })();
