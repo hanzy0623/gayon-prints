@@ -477,85 +477,118 @@
   }
 
   async function printCanvas(canvas, templateKey, userInitiated) {
-    setPrintStatus("Preparing print...");
-    const t = TEMPLATE_MAP[templateKey];
-    const profile = normalizePrinterProfile(settings.printerProfile);
-    const engine = normalizePrintEngine(settings.printEngine);
-    const printAsset = profile === "receipt80"
-      ? createReceiptPrintAsset(
-        canvas,
-        normalizeReceiptQuality(settings.receiptQuality),
-        normalizeReceiptRenderMode(settings.receiptRenderMode),
-        normalizeReceiptBrightness(settings.receiptBrightness),
-        normalizeReceiptContrast(settings.receiptContrast)
-      )
-      : createPhotoPrintAsset(canvas, t);
-
-    if (engine === "qz") {
-      const ok = await tryQzPrint(printAsset, profile);
-      if (ok) {
-        setPrintStatus("QZ print sent.");
-      } else {
-        setPrintStatus("QZ unavailable. Falling back to browser print.");
-      }
-      if (ok) {
-        return;
-      }
-    }
-    const dataUrl = printAsset.dataUrl;
-    const dims = toPortraitPage(printAsset.pageWidthCss, printAsset.pageHeightCss);
-    const isReceipt = printAsset.mode === "receipt80";
-    
-    // Create the print HTML document
-    const finalHtml = `<!doctype html><html><head><meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Print Photo</title>
-      <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      @page { size: ${dims.widthCss} ${dims.heightCss}; margin: 0; }
-      html, body {
-        margin: 0;
-        padding: 0;
-        background: #fff;
-        width: ${dims.widthCss};
-        height: ${dims.heightCss};
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .sheet {
-        width: ${isReceipt ? dims.widthCss : printAsset.sheetWidthCss};
-        height: ${dims.heightCss};
-        display: block;
-        page-break-inside: avoid;
-      }
-      img {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: ${isReceipt ? "contain" : "fill"};
-      }
-      </style></head>
-      <body><div class="sheet"><img src="${dataUrl}" alt="print" onload="window.print();"></div></body></html>`;
-    
-    // Try popup first
-    setPrintStatus("Opening print dialog...");
-    const popupOpened = openPopupPrintWindow(finalHtml);
-    if (popupOpened) {
-      setPrintStatus("Print window opened.");
-      return;
-    }
-
-    // Fall back to iframe
+    console.log("printCanvas called with templateKey:", templateKey, "userInitiated:", userInitiated);
     try {
       setPrintStatus("Preparing print...");
-      const iframePrinted = await printViaIframe(finalHtml);
-      if (iframePrinted) {
-        setPrintStatus("Print completed.");
+      const t = TEMPLATE_MAP[templateKey];
+      if (!t) {
+        setPrintStatus("Invalid template");
+        console.error("Invalid template:", templateKey);
         return;
       }
+      
+      const profile = normalizePrinterProfile(settings.printerProfile);
+      const engine = normalizePrintEngine(settings.printEngine);
+      console.log("Profile:", profile, "Engine:", engine);
+      
+      let printAsset;
+      try {
+        printAsset = profile === "receipt80"
+          ? createReceiptPrintAsset(
+            canvas,
+            normalizeReceiptQuality(settings.receiptQuality),
+            normalizeReceiptRenderMode(settings.receiptRenderMode),
+            normalizeReceiptBrightness(settings.receiptBrightness),
+            normalizeReceiptContrast(settings.receiptContrast)
+          )
+          : createPhotoPrintAsset(canvas, t);
+      } catch (error) {
+        console.error("Error creating print asset:", error);
+        setPrintStatus("Error preparing image: " + error.message);
+        return;
+      }
+
+      if (engine === "qz") {
+        const ok = await tryQzPrint(printAsset, profile);
+        if (ok) {
+          setPrintStatus("QZ print sent.");
+        } else {
+          setPrintStatus("QZ unavailable. Falling back to browser print.");
+        }
+        if (ok) {
+          return;
+        }
+      }
+      
+      const dataUrl = printAsset.dataUrl;
+      if (!dataUrl) {
+        setPrintStatus("Error: No image data");
+        console.error("No dataUrl generated");
+        return;
+      }
+      
+      const dims = toPortraitPage(printAsset.pageWidthCss, printAsset.pageHeightCss);
+      const isReceipt = printAsset.mode === "receipt80";
+      
+      console.log("Print dimensions:", dims);
+      
+      // Create the print HTML document
+      const finalHtml = `<!doctype html><html><head><meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Print Photo</title>
+        <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @page { size: ${dims.widthCss} ${dims.heightCss}; margin: 0; }
+        html, body {
+          margin: 0;
+          padding: 0;
+          background: #fff;
+          width: ${dims.widthCss};
+          height: ${dims.heightCss};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .sheet {
+          width: ${isReceipt ? dims.widthCss : printAsset.sheetWidthCss};
+          height: ${dims.heightCss};
+          display: block;
+          page-break-inside: avoid;
+        }
+        img {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: ${isReceipt ? "contain" : "fill"};
+        }
+        </style></head>
+        <body><div class="sheet"><img src="${dataUrl}" alt="print" onload="setTimeout(() => window.print(), 500);"></div></body></html>`;
+      
+      console.log("HTML prepared, size:", finalHtml.length, "dataUrl size:", dataUrl.length);
+      
+      // Try popup first
+      setPrintStatus("Opening print dialog...");
+      const popupOpened = openPopupPrintWindow(finalHtml);
+      if (popupOpened) {
+        setPrintStatus("Print window opened.");
+        return;
+      }
+
+      // Fall back to iframe
+      try {
+        setPrintStatus("Using iframe method...");
+        const iframePrinted = await printViaIframe(finalHtml);
+        if (iframePrinted) {
+          setPrintStatus("Print completed.");
+          return;
+        }
+      } catch (error) {
+        console.warn("Iframe print failed:", error);
+        setPrintStatus("Iframe method failed: " + error.message);
+      }
     } catch (error) {
-      console.warn("Iframe print failed:", error);
+      console.error("printCanvas error:", error);
+      setPrintStatus("Error: " + error.message);
     }
 
     // If both fail, show error message
@@ -679,6 +712,7 @@
     try {
       const win = window.open("", "_blank", "width=800,height=600,scrollbars=yes");
       if (!win) {
+        console.warn("Popup blocked or failed to open");
         return false;
       }
       win.document.open();
@@ -688,6 +722,7 @@
       // Ensure print dialog triggers once content loads
       const checkAndPrint = () => {
         try {
+          console.log("Popup print attempt");
           win.focus();
           win.print();
         } catch (e) {
@@ -695,9 +730,7 @@
         }
       };
       
-      // Try to print immediately if content is ready
       setTimeout(checkAndPrint, 200);
-      
       return true;
     } catch (error) {
       console.warn("Popup window failed:", error);
