@@ -61,7 +61,9 @@
     keepBtn: byId("keepBtn"),
     resultImage: byId("resultImage"),
     printBtn: byId("printBtn"),
-    saveBtn: byId("saveBtn"),
+    downloadBtn: byIdOptional("downloadBtn"),
+    saveBtn: byIdOptional("saveBtn"),
+    viewGalleryBtn: byIdOptional("viewGalleryBtn"),
     newSessionBtn: byId("newSessionBtn"),
     printStatus: byId("printStatus"),
     adminFooterBtn: byId("adminFooterBtn"),
@@ -134,6 +136,25 @@
       a.download = `gayon-${Date.now()}.png`;
       a.click();
     });
+
+    if (ui.downloadBtn) {
+      ui.downloadBtn.addEventListener("click", () => {
+        if (!composedCanvas) {
+          return;
+        }
+        const a = document.createElement("a");
+        a.href = composedCanvas.toDataURL("image/png");
+        a.download = `gayon-${Date.now()}.png`;
+        a.click();
+      });
+    }
+
+    if (ui.viewGalleryBtn) {
+      ui.viewGalleryBtn.addEventListener("click", () => {
+        loadGallery();
+        showScreen("galleryScreen");
+      });
+    }
 
     ui.newSessionBtn.addEventListener("click", () => {
       resetToStart();
@@ -279,6 +300,20 @@
     composedTemplateKey = finalTemplateKey;
     ui.resultImage.src = composedCanvas.toDataURL("image/png");
     buildQrPreview();
+    
+    // Save to gallery
+    try {
+      const captures = JSON.parse(localStorage.getItem("gayonCaptures") || "[]");
+      captures.push({
+        timestamp: new Date().toISOString(),
+        template: finalTemplateKey,
+        image: composedCanvas.toDataURL("image/png")
+      });
+      localStorage.setItem("gayonCaptures", JSON.stringify(captures));
+    } catch (e) {
+      console.warn("Gallery save failed:", e);
+    }
+    
     showScreen("resultScreen");
     setPrintStatus("Your print is ready. Tap Print to preview and print.");
     scheduleResultAutoReset();
