@@ -48,6 +48,7 @@
     kioskScreen: byId("kioskScreen"),
     reviewScreen: byId("reviewScreen"),
     resultScreen: byId("resultScreen"),
+    galleryScreen: byIdOptional("galleryScreen"),
     tapStartBtn: byId("tapStartBtn"),
     backToStartBtn: byId("backToStartBtn"),
     captureFlowBtn: byId("captureFlowBtn"),
@@ -71,7 +72,15 @@
     liveEventTitle: byId("liveEventTitle"),
     liveBranding: byId("liveBranding"),
     qrWrap: byId("qrWrap"),
-    qrTarget: byId("qrTarget")
+    qrTarget: byId("qrTarget"),
+    userEmail: byIdOptional("userEmail"),
+    sendEmailBtn: byIdOptional("sendEmailBtn"),
+    emailStatus: byIdOptional("emailStatus"),
+    shareTwitterBtn: byIdOptional("shareTwitterBtn"),
+    shareFacebookBtn: byIdOptional("shareFacebookBtn"),
+    shareInstagramBtn: byIdOptional("shareInstagramBtn"),
+    galleryGrid: byIdOptional("galleryGrid"),
+    galleryBackBtn: byIdOptional("galleryBackBtn")
   };
 
   init();
@@ -129,6 +138,41 @@
     ui.newSessionBtn.addEventListener("click", () => {
       resetToStart();
     });
+
+    // Email capture
+    if (ui.sendEmailBtn && ui.userEmail) {
+      ui.sendEmailBtn.addEventListener("click", () => {
+        const email = ui.userEmail.value.trim();
+        if (!email || !email.includes("@")) {
+          ui.emailStatus.textContent = "Please enter a valid email.";
+          return;
+        }
+        handleEmailCapture(email);
+      });
+      ui.userEmail.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          ui.sendEmailBtn.click();
+        }
+      });
+    }
+
+    // Social sharing
+    if (ui.shareTwitterBtn) {
+      ui.shareTwitterBtn.addEventListener("click", () => shareToSocial("twitter"));
+    }
+    if (ui.shareFacebookBtn) {
+      ui.shareFacebookBtn.addEventListener("click", () => shareToSocial("facebook"));
+    }
+    if (ui.shareInstagramBtn) {
+      ui.shareInstagramBtn.addEventListener("click", () => shareToSocial("instagram"));
+    }
+
+    // Gallery
+    if (ui.galleryBackBtn) {
+      ui.galleryBackBtn.addEventListener("click", () => {
+        showScreen("resultScreen");
+      });
+    }
 
     bindAdminFooterTrigger();
   }
@@ -761,6 +805,88 @@
     return idx > -1 ? dataUrl.slice(idx + 1) : dataUrl;
   }
 
+  function handleEmailCapture(email) {
+    if (!ui.emailStatus) return;
+    ui.emailStatus.textContent = "Sending...";
+    
+    try {
+      // In production, this would send to a backend server
+      const photoData = {
+        email: email,
+        timestamp: new Date().toISOString(),
+        template: composedTemplateKey,
+        image: composedCanvas ? composedCanvas.toDataURL("image/png") : null
+      };
+      
+      // Store locally for demo
+      const captures = JSON.parse(localStorage.getItem("gayonCaptures") || "[]");
+      captures.push(photoData);
+      localStorage.setItem("gayonCaptures", JSON.stringify(captures));
+      
+      ui.emailStatus.textContent = "✓ Email captured! Photos will be sent shortly.";
+      if (ui.userEmail) ui.userEmail.value = "";
+      
+      setTimeout(() => {
+        if (ui.emailStatus) ui.emailStatus.textContent = "";
+      }, 4000);
+    } catch (error) {
+      ui.emailStatus.textContent = "Error: " + error.message;
+    }
+  }
+
+  function shareToSocial(platform) {
+    if (!composedCanvas) return;
+    
+    const imageData = composedCanvas.toDataURL("image/jpeg");
+    const shareText = settings.eventTitle || "Gayon Booth";
+    const shareUrl = window.location.href;
+    
+    let url = "";
+    switch (platform) {
+      case "twitter":
+        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText + " - Check out my photo!")}&url=${encodeURIComponent(shareUrl)}`;
+        break;
+      case "facebook":
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
+        break;
+      case "instagram":
+        // Instagram doesn't allow direct sharing from web, show instructions
+        alert("To share on Instagram:\n1. Download your photo\n2. Open Instagram\n3. Upload the photo");
+        return;
+    }
+    
+    if (url) {
+      window.open(url, "_blank", "width=600,height=400");
+    }
+  }
+
+  function loadGallery() {
+    if (!ui.galleryGrid) return;
+    
+    try {
+      const captures = JSON.parse(localStorage.getItem("gayonCaptures") || "[]");
+      ui.galleryGrid.innerHTML = "";
+      
+      captures.forEach((capture, idx) => {
+        const item = document.createElement("div");
+        item.className = "gallery-item";
+        const img = document.createElement("img");
+        img.src = capture.image;
+        img.alt = `Photo ${idx + 1}`;
+        img.onclick = () => {
+          const a = document.createElement("a");
+          a.href = capture.image;
+          a.download = `gayon-${idx}-${Date.now()}.png`;
+          a.click();
+        };
+        item.appendChild(img);
+        ui.galleryGrid.appendChild(item);
+      });
+    } catch (error) {
+      console.warn("Gallery load failed:", error);
+    }
+  }
+
   function createPhotoPrintAsset(canvas, template) {
     return {
       mode: "photo",
@@ -871,7 +997,9 @@
   }
 
   function showScreen(id) {
-    [ui.startScreen, ui.kioskScreen, ui.reviewScreen, ui.resultScreen].forEach((el) => {
+    const screens = [ui.startScreen, ui.kioskScreen, ui.reviewScreen, ui.resultScreen];
+    if (ui.galleryScreen) screens.push(ui.galleryScreen);
+    screens.forEach((el) => {
       el.classList.toggle("active", el.id === id);
     });
   }

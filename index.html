@@ -78,6 +78,27 @@
           <p>Scan Gallery Link</p>
           <div id="qrTarget"></div>
         </div>
+        <!-- Email & Share Section -->
+        <div id="emailShareSection" class="email-share-section">
+          <p class="section-label">Get Your Photos Instantly</p>
+          <div class="email-input-group">
+            <input id="userEmail" type="email" placeholder="Enter your email" class="email-input">
+            <button id="sendEmailBtn" class="btn btn-small">Send</button>
+          </div>
+          <div class="social-share-buttons">
+            <button id="shareTwitterBtn" class="social-btn twitter" title="Share on Twitter">
+              <i class="ri-twitter-fill"></i>
+            </button>
+            <button id="shareFacebookBtn" class="social-btn facebook" title="Share on Facebook">
+              <i class="ri-facebook-fill"></i>
+            </button>
+            <button id="shareInstagramBtn" class="social-btn instagram" title="Share on Instagram">
+              <i class="ri-instagram-fill"></i>
+            </button>
+          </div>
+          <p id="emailStatus" class="admin-hint"></p>
+        </div>
+        
         <div class="result-actions">
           <button id="printBtn" class="btn btn-primary">Print</button>
           <button id="saveBtn" class="btn">Download</button>
@@ -85,6 +106,17 @@
         </div>
         <p id="printStatus" class="admin-hint"></p>
       </div>
+    </section>
+
+    <section id="galleryScreen" class="screen">
+      <header class="gallery-header glass">
+        <div>
+          <h2>Photo Gallery</h2>
+          <p>All captured moments from today</p>
+        </div>
+        <button id="galleryBackBtn" class="btn">Back</button>
+      </header>
+      <div id="galleryGrid" class="gallery-grid"></div>
     </section>
   </div>
 
